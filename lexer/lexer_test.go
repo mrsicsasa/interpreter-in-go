@@ -1,5 +1,5 @@
 package lexer
-
+//go test ./lexer
 import (
 	"testing"
 	"github.com/mrsicsasa/interpreter-in-go/token"

@@ -1,11 +1,12 @@
 package parser
 
-import(
+import (
 	"fmt"
 	"strconv"
-	"github.com/mrsicsasa/interpreter-in-go/token"
+
 	"github.com/mrsicsasa/interpreter-in-go/ast"
 	"github.com/mrsicsasa/interpreter-in-go/lexer"
+	"github.com/mrsicsasa/interpreter-in-go/token"
 )
 const(
 	_ int=iota
@@ -46,6 +47,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT,p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG,p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS,p.parsePrefixExpression)
+	p.registerPrefix(token.TRUE,p.parseBoolean)
+	p.registerPrefix(token.FALSE,p.parseBoolean)
+	p.registerPrefix(token.LPAREN,p.parseGroundExpression)
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
     p.registerInfix(token.PLUS, p.parseInfixExpression)
     p.registerInfix(token.MINUS, p.parseInfixExpression)
@@ -224,4 +228,15 @@ func (p *Parser)parseInfixExpression(left ast.Expression)ast.Expression{
 	p.NextToken()
 	expression.Right=p.ParseExpression(precedence)
 	return expression
+}
+func (p *Parser)parseBoolean()ast.Expression{
+	return &ast.Boolean{Token:p.curToken,Value:p.curTokenIs(token.TRUE)}
+}
+func (p *Parser)parseGroundExpression()ast.Expression{
+	p.NextToken()
+	exp:=p.ParseExpression(LOWEST)
+	if !p.expectPeek(token.RPAREN){
+		return nil
+	}
+	return exp
 }

@@ -1,10 +1,12 @@
 package repl
-import(
+
+import (
 	"bufio"
 	"fmt"
 	"io"
-	"github.com/mrsicsasa/interpreter-in-go/token"
+
 	"github.com/mrsicsasa/interpreter-in-go/lexer"
+	"github.com/mrsicsasa/interpreter-in-go/parser"
 )
 const PROMT=">>"
 func Start(in io.Reader, out io.Writer){
@@ -17,10 +19,20 @@ func Start(in io.Reader, out io.Writer){
 			return
 		}
 		line := scanner.Text()
-		lex := lexer.New(line) // Change variable name from l to lex
-		for tok := lex.NextToken(); tok.Type != token.EOF; tok = lex.NextToken() {
-			fmt.Printf("%+v\n", tok)
+		l := lexer.New(line) // Change variable name from l to lex
+		p:=parser.New(l)
+		program:=p.ParseProgram()
+		if len(p.Errors())!=0{
+			printParserErrors(out,p.Errors())
+			continue
 		}
+		io.WriteString(out,program.String())
+		io.WriteString(out,"\n")
 	}
-	
+}
+
+func printParserErrors(out io.Writer,errors []string){
+	for _,msg:=range errors{
+		io.WriteString(out,"\t"+msg+"\n")
+	}
 }
